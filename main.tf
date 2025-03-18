@@ -15,3 +15,8 @@ provider "aws" {
 module "infra_aws_instance" {
   source = "./infra/aws_instance"
 }
+
+module "infra_s3_bucket" {
+  source = "./infra/s3_bucket"
+  
+}
