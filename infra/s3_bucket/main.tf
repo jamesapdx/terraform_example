@@ -1,7 +1,7 @@
 resource "aws_s3_bucket" "s3_bucket" {
-  bucket = "jamesa_s3_bucket"
-  force_destroy =  true
+  bucket        = "jamesa-s3-bucket"
+  force_destroy = true
   tags = {
-    Name = "S3 Bucket"
+    Name = "s3-bucket"
   }
 }
