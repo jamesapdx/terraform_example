@@ -13,91 +13,48 @@ resource "aws_internet_gateway" "igw" {
   }
 }
 
-resource "aws_subnet" "subnet1" {
+resource "aws_subnet" "subnet" {
+  count             = var.instance_count
   vpc_id            = aws_vpc.vpc.id
-  cidr_block        = var.subnets[0]
-  availability_zone = "us-west-2a"
+  cidr_block        = "${var.subnets}.${count.index}.0/24"
+  availability_zone = "${var.subnet_availability_zone}${local.availability_zones[count.index]}"
 
   tags = {
-    Name = "tf-example-subnet1"
+    Name = "tf-example-subnet${count.index}"
   }
 }
 
-resource "aws_subnet" "subnet2" {
-  vpc_id            = aws_vpc.vpc.id
-  cidr_block        = var.subnets[1]
-  availability_zone = "us-west-2b"
-
-
-  tags = {
-    Name = "tf-example-subnet2"
-  }
-}
-
-resource "aws_network_interface" "adapter1" {
-  subnet_id       = aws_subnet.subnet1.id
-  private_ips     = [var.ips[0]]
+resource "aws_network_interface" "adapter" {
+  count           = var.instance_count
+  subnet_id       = aws_subnet.subnet[count.index].id
+  private_ips     = ["{var.ips}.${count.index}.1"]
   security_groups = [aws_security_group.security_group.id]
 
   tags = {
-    Name = "primary_network_interface1"
+    Name = "primary_network_interface${count.index}"
   }
 }
 
-resource "aws_network_interface" "adapter2" {
-  subnet_id       = aws_subnet.subnet2.id
-  private_ips     = [var.ips[1]]
-  security_groups = [aws_security_group.security_group.id]
-
-  tags = {
-    Name = "primary_network_interface2"
-  }
-}
-
-resource "aws_instance" "aws_instance1" {
+resource "aws_instance" "this" {
+  count         = var.instance_count
   ami           = var.ami
   instance_type = var.instance_type
-  # instance_type = "t2.micro"
-  user_data = <<-EOF
-    #!/bin/bash
-    echo "Hello World 1" > index.html
-    python3 -m http.server 80 &
-    EOF
-  # python3 -m http.server 8080 &
-
-  network_interface {
-    network_interface_id = aws_network_interface.adapter1.id
-    device_index         = 0
-  }
-  lifecycle {
-    # Reference the security group as a whole or individual attributes like `name`
-    replace_triggered_by = [aws_security_group.security_group]
-  }
-  tags = {
-    Name = "AWS_Instance1"
-  }
-}
-
-resource "aws_instance" "aws_instance2" {
-  ami           = var.ami
-  instance_type = "t2.micro"
   user_data     = <<-EOF
     #!/bin/bash
-    echo "Hello World 2" > index.html
+    echo "Hello World ${count.index}" > index.html
     python3 -m http.server 80 &
     EOF
   # python3 -m http.server 8080 &
 
   network_interface {
-    network_interface_id = aws_network_interface.adapter2.id
+    network_interface_id = aws_network_interface.adapter[count.index].id
     device_index         = 0
   }
   lifecycle {
-    # Reference the security group as a whole or individual attributes like `name`
     replace_triggered_by = [aws_security_group.security_group]
   }
   tags = {
-    Name = "AWS_Instance2"
+    Name = "AWS-Instance-${count.index}"
   }
 }
 
@@ -113,9 +70,8 @@ resource "aws_security_group" "security_group" {
 resource "aws_lb" "load_balancer" {
   name               = "load-balancer"
   load_balancer_type = "application"
-  subnets            = [aws_subnet.subnet1.id, aws_subnet.subnet2.id]
-  security_groups    = [aws_security_group.security_group.id]
-
+  subnets         = [for v in aws_subnet.subnet : v.id]
+  security_groups = [aws_security_group.security_group.id]
 }
 
 resource "aws_security_group_rule" "allow-http-inbound" {
@@ -175,14 +131,9 @@ resource "aws_lb_target_group" "lb_targets" {
 }
 
 resource "aws_lb_target_group_attachment" "lb_instance1" {
+  count = var.instance_count
   target_group_arn = aws_lb_target_group.lb_targets.arn
-  target_id        = aws_instance.aws_instance1.id
-  port             = 80
-}
-
-resource "aws_lb_target_group_attachment" "lb_instance2" {
-  target_group_arn = aws_lb_target_group.lb_targets.arn
-  target_id        = aws_instance.aws_instance2.id
+  target_id        = aws_instance.this[count.index].id
   port             = 80
 }
 

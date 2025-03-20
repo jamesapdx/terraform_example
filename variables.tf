@@ -4,6 +4,18 @@ variable "instance_type" {
   default     = "t2.micro"
 }
 
+variable "instance_count" {
+  description = "Number of instances to create, 4 max"
+  type = number
+  default = 2
+}
+
+variable "subnet_availability_zone" {
+  description = "Subnet availability zone"
+  type = string
+  default = "us-west-2"
+}
+
 variable "vpc_cidr" {
   description = "VPC CIDR"
   type        = string
@@ -12,12 +24,12 @@ variable "vpc_cidr" {
 
 variable "subnets" {
   description = "Subnets"
-  type        = list(string)
+  type        = string
 }
 
 variable "ips" {
   description = "Adapter IP addresses"
-  type        = list(string)
+  type        = string
 }
 
 variable "ami" {

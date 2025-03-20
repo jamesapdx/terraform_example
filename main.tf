@@ -15,6 +15,8 @@ provider "aws" {
 module "infra_aws_instance" {
   source = "./infra/aws_instance"
   instance_type = var.instance_type
+  instance_count = var.instance_count
+  subnet_availability_zone = var.subnet_availability_zone
   vpc_cidr = var.vpc_cidr
   subnets = var.subnets
   ips = var.ips
