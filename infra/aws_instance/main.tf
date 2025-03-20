@@ -1,5 +1,5 @@
 resource "aws_vpc" "vpc" {
-  cidr_block = "172.16.0.0/16"
+  cidr_block = var.vpc_cidr
 
   tags = {
     Name = "tf-example-vpc"
@@ -15,7 +15,7 @@ resource "aws_internet_gateway" "igw" {
 
 resource "aws_subnet" "subnet1" {
   vpc_id            = aws_vpc.vpc.id
-  cidr_block        = "172.16.10.0/24"
+  cidr_block        = var.subnets[0]
   availability_zone = "us-west-2a"
 
   tags = {
@@ -25,7 +25,7 @@ resource "aws_subnet" "subnet1" {
 
 resource "aws_subnet" "subnet2" {
   vpc_id            = aws_vpc.vpc.id
-  cidr_block        = "172.16.11.0/24"
+  cidr_block        = var.subnets[1]
   availability_zone = "us-west-2b"
 
 
@@ -36,7 +36,7 @@ resource "aws_subnet" "subnet2" {
 
 resource "aws_network_interface" "adapter1" {
   subnet_id       = aws_subnet.subnet1.id
-  private_ips     = ["172.16.10.100"]
+  private_ips     = [var.ips[0]]
   security_groups = [aws_security_group.security_group.id]
 
   tags = {
@@ -46,7 +46,7 @@ resource "aws_network_interface" "adapter1" {
 
 resource "aws_network_interface" "adapter2" {
   subnet_id       = aws_subnet.subnet2.id
-  private_ips     = ["172.16.11.100"]
+  private_ips     = [var.ips[1]]
   security_groups = [aws_security_group.security_group.id]
 
   tags = {
@@ -55,14 +55,15 @@ resource "aws_network_interface" "adapter2" {
 }
 
 resource "aws_instance" "aws_instance1" {
-  ami           = "ami-0b6d6dacf350ebc82"
-  instance_type = "t2.micro"
-  user_data     = <<-EOF
+  ami           = var.ami
+  instance_type = var.instance_type
+  # instance_type = "t2.micro"
+  user_data = <<-EOF
     #!/bin/bash
     echo "Hello World 1" > index.html
     python3 -m http.server 80 &
     EOF
-    # python3 -m http.server 8080 &
+  # python3 -m http.server 8080 &
 
   network_interface {
     network_interface_id = aws_network_interface.adapter1.id
@@ -78,15 +79,14 @@ resource "aws_instance" "aws_instance1" {
 }
 
 resource "aws_instance" "aws_instance2" {
-  ami           = "ami-0b6d6dacf350ebc82"
+  ami           = var.ami
   instance_type = "t2.micro"
   user_data     = <<-EOF
     #!/bin/bash
     echo "Hello World 2" > index.html
     python3 -m http.server 80 &
     EOF
-    # python3 -m http.server 8080 &
-
+  # python3 -m http.server 8080 &
 
   network_interface {
     network_interface_id = aws_network_interface.adapter2.id
@@ -157,7 +157,7 @@ resource "aws_lb_listener" "http" {
 }
 
 resource "aws_lb_target_group" "lb_targets" {
-  name     = "target-group"
+  name = "target-group"
   # port     = 8080
   port     = 80
   protocol = "HTTP"
