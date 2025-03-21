@@ -1,37 +1,37 @@
 resource "aws_vpc" "vpc" {
-  cidr_block = var.vpc_cidr
+  cidr_block = "${var.network}.0.0/16"
 
   tags = {
-    Name = "tf-example-vpc"
+    Name = "vpc-${var.env}"
   }
 }
 
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc.id
   tags = {
-    "Name" = "igw"
+    "Name" = "igw-${var.env}"
   }
 }
 
 resource "aws_subnet" "subnet" {
   count             = var.instance_count
   vpc_id            = aws_vpc.vpc.id
-  cidr_block        = "${var.subnets}.${count.index}.0/24"
+  cidr_block        = "${var.network}.${count.index + 1}.0/24"
   availability_zone = "${var.subnet_availability_zone}${local.availability_zones[count.index]}"
 
   tags = {
-    Name = "tf-example-subnet${count.index}"
+    Name = "subnet${count.index}-${var.env}"
   }
 }
 
 resource "aws_network_interface" "adapter" {
   count           = var.instance_count
   subnet_id       = aws_subnet.subnet[count.index].id
-  private_ips     = ["{var.ips}.${count.index}.1"]
+  private_ips     = ["{var.network}.${count.index + 1}.100"]
   security_groups = [aws_security_group.security_group.id]
 
   tags = {
-    Name = "primary_network_interface${count.index}"
+    Name = "primary_network_interface${count.index}-${var.env}"
   }
 }
 
@@ -41,7 +41,7 @@ resource "aws_instance" "this" {
   instance_type = var.instance_type
   user_data     = <<-EOF
     #!/bin/bash
-    echo "Hello World ${count.index}" > index.html
+    echo "Hello World ${count.index} #{var.env}" > index.html
     python3 -m http.server 80 &
     EOF
   # python3 -m http.server 8080 &
@@ -54,12 +54,12 @@ resource "aws_instance" "this" {
     replace_triggered_by = [aws_security_group.security_group]
   }
   tags = {
-    Name = "AWS-Instance-${count.index}"
+    Name = "EC2-instance-${count.index}-${var.env}"
   }
 }
 
 resource "aws_security_group" "security_group" {
-  name   = "jamesa555-ec2-security-group"
+  name   = "jamesa555-ec2-security-group-${var.env}"
   vpc_id = aws_vpc.vpc.id
 
   lifecycle {

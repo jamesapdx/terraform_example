@@ -1,6 +1,6 @@
 
 resource "aws_lb" "load_balancer" {
-  name               = "load-balancer"
+  name               = "load-balancer-${var.env}"
   load_balancer_type = "application"
   subnets            = [for v in var.aws_subnets : v.id]
   security_groups    = [var.security_group.id]
@@ -9,6 +9,7 @@ resource "aws_lb" "load_balancer" {
 resource "aws_security_group_rule" "allow-http-inbound" {
   type              = "ingress"
   security_group_id = var.security_group.id
+
 
   # from_port   = 8080
   # to_port     = 8080
@@ -42,6 +43,10 @@ resource "aws_lb_listener" "http" {
       status_code  = 404
     }
   }
+
+  tags = {
+    Name = "lb-listener-${var.env}"
+  }
 }
 
 resource "aws_lb_target_group" "lb_targets" {
@@ -59,6 +64,10 @@ resource "aws_lb_target_group" "lb_targets" {
     timeout             = 3
     healthy_threshold   = 2
     unhealthy_threshold = 2
+  }
+
+  tags = {
+    Name = "lb-listener-${var.env}"
   }
 }
 
@@ -81,5 +90,9 @@ resource "aws_lb_listener_rule" "listener_rule" {
   action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.lb_targets.arn
+  }
+
+  tags = {
+    Name = "lb-listener-rule-${var.env}"
   }
 }

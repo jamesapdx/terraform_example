@@ -1,10 +1,5 @@
-output "aws_instance_ip1" {
-    description = "IPs of instance 1"
-    value = module.infra_aws_instance.aws_instance_names
-}
-
-output "aws_instance_ip2" {
-    description = "IPs of instance 2"
+output "aws_instance_ips" {
+    description = "IPs of instances"
     value = module.infra_aws_instance.aws_instance_ips
 }
 

@@ -9,13 +9,13 @@ output "aws_instance_ips" {
 }
 
 output "aws_instances" {
-  description = "EC2 object"
+  description = "EC2 objects"
   value       = aws_instance.this
 }
 
 output "vpc" {
-    description = "VPC"
-    value = aws_vpc.vpc
+  description = "VPC"
+  value       = aws_vpc.vpc
 }
 
 output "aws_subnets" {

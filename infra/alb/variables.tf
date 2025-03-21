@@ -1,10 +1,15 @@
+variable "env" {
+  description = "Environment"
+  type        = string
+}
+
 variable "aws_instances" {
   description = "List of EC2 objects"
 }
 
 variable "vpc" {
-    description = "VPC"
-  
+  description = "VPC"
+
 }
 
 variable "aws_subnets" {
