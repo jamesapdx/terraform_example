@@ -6,14 +6,14 @@ variable "instance_type" {
 
 variable "instance_count" {
   description = "Number of instances to create"
-  type = number
-  default = 2
+  type        = number
+  default     = 2
 }
 
 variable "subnet_availability_zone" {
   description = "Subnet availability zone"
-  type = string
-  default = "us-west-2"
+  type        = string
+  default     = "us-west-2"
 }
 
 locals {
