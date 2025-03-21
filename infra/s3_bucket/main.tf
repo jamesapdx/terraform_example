@@ -1,12 +1,34 @@
-variable "env" {
-  description = "Environment"
+# ----------------------------------------------------------------------------------------------------------------------
+# Platform Standard Variables
+# ----------------------------------------------------------------------------------------------------------------------
+
+variable "stage" {
+  description = "The development stage (i.e. `dev`, `stg`, `prd`)"
   type        = string
 }
 
+# ----------------------------------------------------------------------------------------------------------------------
+# MODULES / RESOURCES
+# ----------------------------------------------------------------------------------------------------------------------
+
 resource "aws_s3_bucket" "s3_bucket" {
-  bucket        = "jamesa-s3-bucket-${var.env}"
+  bucket        = "jamesa-s3-bucket-${var.stage}"
   force_destroy = true
   tags = {
-    Name = "s3-bucket-${var.env}"
+    Name = "s3-bucket-${var.stage}"
   }
+}
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Outputs
+# ----------------------------------------------------------------------------------------------------------------------
+
+output "s3_bucket_name" {
+  description = "Name of created S3 bucket"
+  value       = aws_s3_bucket.s3_bucket.id
+}
+
+output "s3_bucket_arn" {
+  description = "ARN of created S3 bucket"
+  value       = aws_s3_bucket.s3_bucket.arn
 }

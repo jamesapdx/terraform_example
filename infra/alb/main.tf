@@ -1,6 +1,38 @@
+# ----------------------------------------------------------------------------------------------------------------------
+# Platform Standard Variables
+# ----------------------------------------------------------------------------------------------------------------------
+
+variable "stage" {
+  description = "The development stage (i.e. `dev`, `stg`, `prd`)"
+  type        = string
+}
+
+# ----------------------------------------------------------------------------------------------------------------------
+# VARIABLES / LOCALS / REMOTE STATE
+# ----------------------------------------------------------------------------------------------------------------------
+
+variable "aws_instances" {
+  description = "List of EC2 objects"
+}
+
+variable "vpc" {
+  description = "VPC"
+}
+
+variable "aws_subnets" {
+  description = "All subnets"
+}
+
+variable "security_group" {
+  description = "Security group"
+}
+
+# ----------------------------------------------------------------------------------------------------------------------
+# MODULES / RESOURCES
+# ----------------------------------------------------------------------------------------------------------------------
 
 resource "aws_lb" "load_balancer" {
-  name               = "load-balancer-${var.env}"
+  name               = "load-balancer-${var.stage}"
   load_balancer_type = "application"
   subnets            = [for v in var.aws_subnets : v.id]
   security_groups    = [var.security_group.id]
@@ -45,7 +77,7 @@ resource "aws_lb_listener" "http" {
   }
 
   tags = {
-    Name = "lb-listener-${var.env}"
+    Name = "lb-listener-${var.stage}"
   }
 }
 
@@ -67,7 +99,7 @@ resource "aws_lb_target_group" "lb_targets" {
   }
 
   tags = {
-    Name = "lb-listener-${var.env}"
+    Name = "lb-listener-${var.stage}"
   }
 }
 
@@ -93,6 +125,6 @@ resource "aws_lb_listener_rule" "listener_rule" {
   }
 
   tags = {
-    Name = "lb-listener-rule-${var.env}"
+    Name = "lb-listener-rule-${var.stage}"
   }
 }
